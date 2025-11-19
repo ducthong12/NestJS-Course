@@ -5,9 +5,16 @@ import { TicketModule } from './ticket/ticket.module';
 import { OrderModule } from './order/order.module';
 import { UserModule } from './user/user.module';
 import { DbModule } from './db/db.module';
+import { PraticePrismaModule } from './pratice_prisma/pratice_prisma.module';
 
 @Module({
-  imports: [TicketModule, OrderModule, UserModule, DbModule],
+  imports: [
+    TicketModule,
+    OrderModule,
+    UserModule,
+    DbModule,
+    PraticePrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output = "../src/generated/prisma"
+}
+
+generator docs {
+  provider = "node node_modules/prisma-docs-generator"
+  output   = "../src/generated/docs" 
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// Model Người dùng
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER) // Enum
+  posts     Post[]   // Quan hệ 1-nhiều với Post
+  profile   Profile? // Quan hệ 1-1 với Profile
+  createdAt DateTime @default(now())
+}
+
+// Model Bài viết
+model Post {
+  id        Int        @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean    @default(false)
+  viewCount Int        @default(0)
+  author    User       @relation(fields: [authorId], references: [id])
+  authorId  Int
+  categories Category[] // Quan hệ nhiều-nhiều (implicit)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// Model Hồ sơ (Thông tin thêm của User)
+model Profile {
+  id     Int    @id @default(autoincrement())
+  bio    String?
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int    @unique // Quan hệ 1-1 bắt buộc phải unique
+}
+
+// Model Danh mục
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[] // Quan hệ nhiều-nhiều
+}
+
+enum Role {
+  USER
+  ADMIN
+}
