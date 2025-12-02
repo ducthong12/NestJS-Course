@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # Dịch vụ Postgres (như file của bạn)
+  postgres:
+    image: postgres:latest
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '${POSTGRES_PORT}:5432' # Ánh xạ cổng 5431 (từ file .env) ra máy thật
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: rabbitmq_container
+  #   ports:
+  #     - '5672:5672' # Port để ứng dụng (NestJS) kết nối gửi/nhận tin
+  #     - '15672:15672' # Port giao diện quản lý Web (User/Pass: guest/guest)
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+
+  # 1. Zookeeper: Kafka cần cái này để quản lý trạng thái (phiên bản cũ/ổn định)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper_container
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+
+  # 2. Kafka Broker: Trái tim của hệ thống
+  # --- Broker 1 ---
+  kafka-1:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-1
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Tối ưu cho High Load
+      KAFKA_NUM_PARTITIONS: 6 # Mặc định 6 phân vùng để chia tải song song
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3 # Sao lưu ra 3 máy để an toàn dữ liệu
+      KAFKA_MIN_IN_SYNC_REPLICAS: 2 # Ít nhất 2 máy phải nhận được tin mới coi là thành công
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+
+  # --- Broker 2 ---
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-2
+    depends_on:
+      - zookeeper
+    ports:
+      - '9093:9093'
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29093,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NUM_PARTITIONS: 6
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_IN_SYNC_REPLICAS: 2
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+
+  # --- Broker 3 ---
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-3
+    depends_on:
+      - zookeeper
+    ports:
+      - '9094:9094'
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29094,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NUM_PARTITIONS: 6
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_IN_SYNC_REPLICAS: 2
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
+
+  # ------------------------------------------------------------
+  # KAFKA UI - Quản lý cả cụm
+  # ------------------------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka_ui_container
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - '8080:8080'
+    environment:
+      KAFKA_CLUSTERS_0_NAME: HighLoadCluster
+      # Kết nối tới tất cả các node trong cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092,kafka-2:29093,kafka-3:29094
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+volumes:
+  postgres-data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:

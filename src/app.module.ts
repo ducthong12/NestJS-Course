@@ -6,6 +6,8 @@ import { OrderModule } from './order/order.module';
 import { UserModule } from './user/user.module';
 import { DbModule } from './db/db.module';
 import { PraticePrismaModule } from './pratice_prisma/pratice_prisma.module';
+import { KafkaModule } from './kafka/kafka.module';
+import { GraphqlModule } from './graphql/graphql.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { PraticePrismaModule } from './pratice_prisma/pratice_prisma.module';
     UserModule,
     DbModule,
     PraticePrismaModule,
+    KafkaModule,
+    GraphqlModule,
   ],
   controllers: [AppController],
   providers: [AppService],
