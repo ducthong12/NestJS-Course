@@ -1,13 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { KafkaRetryService } from './kafka-retry.service';
 
 @Injectable()
 export class KafkaService {
-  constructor(
-    @Inject('KAFKA_SERVICE') private readonly client: ClientKafka,
-    private readonly retryService: KafkaRetryService,
-  ) {}
+  constructor(@Inject('KAFKA_SERVICE') private readonly client: ClientKafka) {}
 
   async onModuleInit() {
     this.client.subscribeToResponseOf('calculate_sum');
@@ -34,18 +30,9 @@ export class KafkaService {
   }
 
   // Đây là hàm sẽ được gọi từ Controller
-  async processOrder(data: { id: string; name: string }, topic: string) {
+  processOrder(data: { id: string; name: string }) {
     // GỌI HÀM BỌC:
-    await this.retryService.execute(
-      data,
-      topic,
-      // Truyền logic nghiệp vụ vào dưới dạng Arrow Function
-      (msg) => {
-        this.handleBusinessLogic(msg);
-      },
-      // Option tùy chỉnh (nếu muốn)
-      { maxRetries: 3 },
-    );
+    this.handleBusinessLogic(data);
   }
 
   // Logic nghiệp vụ thuần túy (Không cần quan tâm retry/dlq ở đây nữa)

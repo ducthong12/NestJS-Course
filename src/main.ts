@@ -27,12 +27,16 @@ async function bootstrap() {
   // Start microservices before starting the HTTP server
   await app.startAllMicroservices();
   app.useGlobalPipes(new ValidationPipe());
-  //Enable cors
+  // //Enable cors
   app.enableCors();
   app.useStaticAssets(join(__dirname, '../uploads'));
   await app.listen(process.env.PORT ?? 3000);
 }
 
 bootstrap()
-  .then(() => {})
-  .catch(() => {});
+  .then(() => {
+    console.log('Application is running...');
+  })
+  .catch((error: any) => {
+    console.log('Application is failed...', error);
+  });

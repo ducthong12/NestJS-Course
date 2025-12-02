@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseFilters } from '@nestjs/common';
 import {
   Ctx,
   EventPattern,
@@ -7,6 +7,7 @@ import {
   Payload,
 } from '@nestjs/microservices';
 import { KafkaService } from './kafka.service';
+import { KafkaMaxRetryExceptionFilter } from './kafka-max-retry.service';
 
 @Controller('kafka')
 export class KafkaController {
@@ -41,6 +42,7 @@ export class KafkaController {
   }
 
   @EventPattern('order_payment')
+  @UseFilters(new KafkaMaxRetryExceptionFilter(3))
   async handleOrderPayment(
     @Payload() message: { orderId: string },
     @Ctx() context: KafkaContext, // Inject Context vào

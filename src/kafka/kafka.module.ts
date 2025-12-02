@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { KafkaController } from './kafka.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { KafkaService } from './kafka.service';
-import { KafkaRetryService } from './kafka-retry.service';
 
 @Module({
   imports: [
@@ -22,6 +21,6 @@ import { KafkaRetryService } from './kafka-retry.service';
     ]),
   ],
   controllers: [KafkaController],
-  providers: [KafkaService, KafkaRetryService],
+  providers: [KafkaService],
 })
 export class KafkaModule {}
