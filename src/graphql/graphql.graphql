@@ -1,24 +1,47 @@
-type Graphql {
-  # Example field (placeholder)
-  exampleField: Int
+type UserOutput {
+  email: String!
+  name: String
+  role: Role
 }
 
-input CreateGraphqlInput {
-  # Example field (placeholder)
-  exampleField: Int
+type Post {
+  title: String!
+  content: String
+  published: Boolean!
+  viewCount: Int!
+  authorId: Int!
 }
 
-input UpdateGraphqlInput {
+type UserWithPosts {
+  email: String!
+  name: String
+  role: Role
+  posts: [Post]
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+input CreateUserInput {
+  email: String!
+  name: String
+  role: Role
+}
+
+input UpdateUserInput {
   id: Int!
 }
 
 type Query {
-  graphql: [Graphql]!
-  graphql(id: Int!): Graphql
+  findEmailWithPost(email: String!): UserOutput
+  findAllUser: [UserOutput]
+  findUserWithLeastPost: [UserWithPosts]
 }
 
 type Mutation {
-  createGraphql(createGraphqlInput: CreateGraphqlInput!): Graphql!
-  updateGraphql(updateGraphqlInput: UpdateGraphqlInput!): Graphql!
-  removeGraphql(id: Int!): Graphql
+  createUserInput(createUserInput: CreateUserInput!): UserOutput!
+  # updateGraphql(updateGraphqlInput: UpdateGraphqlInput!): Graphql!
+  # removeGraphql(id: Int!): Graphql
 }

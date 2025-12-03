@@ -8,6 +8,7 @@ import {
 import { UpdatePraticePrismaInput } from './dto/update-pratice_prisma.dto';
 import { PrismaService } from '../config/prisma.service';
 import { Prisma } from '@generated/prisma';
+import { UserOutput } from 'src/graphql/dto/graphql';
 
 @Injectable()
 export class PraticePrismaService {
@@ -68,10 +69,29 @@ export class PraticePrismaService {
   }
 
   findEmailWithPost({ email }: { email: string }) {
-    return this.prisma.user.findUnique({
-      where: { email },
-      include: { posts: true },
-    });
+    // return this.prisma.user.findUnique({
+    //   where: { email },
+    //   include: { posts: true },
+    // });
+    return (
+      this.prisma.$queryRaw<UserOutput[]>`
+        SELECT 
+          id, email, name 
+        FROM "User" 
+        WHERE email = ${email}
+      `
+        // Lấy phần tử đầu tiên của mảng (hoặc null/undefined nếu mảng rỗng)
+        .then((resultArray: UserOutput[]) => {
+          const user = resultArray[0]; // Lấy đối tượng User đầu tiên
+
+          if (!user) {
+            return null; // Trả về null nếu không tìm thấy người dùng
+          }
+
+          // Ép kiểu User sang UserOutput
+          return user as unknown as UserOutput;
+        })
+    );
   }
 
   findPostSelectTitle() {

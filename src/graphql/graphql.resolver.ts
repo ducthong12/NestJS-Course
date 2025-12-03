@@ -1,9 +1,7 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 import { GraphqlService } from './graphql.service';
-import { CreateUserInputGraphQl } from './dto/create-user-graphql.input';
-import { UpdateUserInputGraphQl } from './dto/update-user-graphql.input';
 import { PraticePrismaService } from 'src/pratice_prisma/pratice_prisma.service';
-import { UserOutputGraphQlDto } from './dto/user-graphql.output';
+import { UserOutput } from './dto/graphql';
 
 @Resolver('graphql')
 export class GraphqlResolver {
@@ -12,28 +10,35 @@ export class GraphqlResolver {
     private readonly praticePrismaService: PraticePrismaService,
   ) {}
 
-  @Mutation(() => Boolean, { name: 'createUser' })
-  create(@Args('createUserInput') createUserInput: CreateUserInputGraphQl) {
-    return this.graphqlService.create(createUserInput);
-  }
+  // @Mutation(() => UserOutput)
+  // createUser(@Args('createUserInput') createUserInput: CreateUserDto) {
+  //   return this.praticePrismaService.create(createUserInput);
+  // }
 
-  @Query(() => String, { name: 'findAllUser' })
+  @Query(() => [UserOutput], { name: 'findAllUser', nullable: true })
   findAll() {
-    return this.graphqlService.findAll();
+    return this.praticePrismaService.findAll();
   }
 
-  @Query(() => UserOutputGraphQlDto, { name: 'findEmailWithPost' })
+  @Query(() => [UserOutput], { nullable: true })
+  findUserWithLeastPost() {
+    return this.praticePrismaService.findUserWithLeastPost();
+  }
+
+  @Query(() => UserOutput, {
+    nullable: true,
+  })
   findEmailWithPost(@Args('email') email: string) {
     return this.praticePrismaService.findEmailWithPost({ email });
   }
 
-  @Mutation(() => Boolean, { name: 'updateUser' })
-  update(@Args('updateUserInput') updateUserInput: UpdateUserInputGraphQl) {
-    return this.graphqlService.update(updateUserInput.id, updateUserInput);
-  }
+  // @Mutation(() => Boolean, { name: 'updateUser' })
+  // update(@Args('updateUserInput') updateUserInput: UpdateUserInputGraphQl) {
+  //   return this.graphqlService.update(updateUserInput.id, updateUserInput);
+  // }
 
-  @Mutation(() => Boolean, { name: 'removeUser' })
-  remove(@Args('id') id: number) {
-    return this.graphqlService.remove(id);
-  }
+  // @Mutation(() => Boolean, { name: 'removeUser' })
+  // remove(@Args('id') id: number) {
+  //   return this.graphqlService.remove(id);
+  // }
 }
