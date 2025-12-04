@@ -6,6 +6,7 @@ import { join } from 'path';
 import { PraticePrismaService } from 'src/pratice_prisma/pratice_prisma.service';
 import { PrismaService } from 'src/config/prisma.service';
 import { GraphqlResolver } from './graphql.resolver';
+import { PubSubModule } from 'src/common/pubsub.module';
 
 @Module({
   imports: [
@@ -18,7 +19,13 @@ import { GraphqlResolver } from './graphql.resolver';
         outputAs: 'class',
       },
       sortSchema: true,
+      installSubscriptionHandlers: true,
+      subscriptions: {
+        'graphql-ws': true, // Bật giao thức WebSocket mới (chuẩn hiện nay)
+        'subscriptions-transport-ws': true,
+      },
     }),
+    PubSubModule,
   ],
   providers: [
     GraphqlResolver,

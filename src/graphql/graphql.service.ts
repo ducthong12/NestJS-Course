@@ -1,24 +1,37 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/config/prisma.service';
+import { CreateUserInput, UpdateUserInput } from './dto/graphql';
 
 @Injectable()
 export class GraphqlService {
-  create() {
-    return 'This action adds a new graphql';
+  constructor(private readonly prismaService: PrismaService) {}
+
+  create(createUserInput: CreateUserInput) {
+    // convert nullable role (null) to undefined so it matches Prisma's expected type
+    const data = {
+      ...createUserInput,
+      role: createUserInput.role ?? undefined,
+    };
+    return this.prismaService.user.create({
+      data,
+    });
   }
 
-  findAll() {
-    return `This action returns all graphql`;
+  update(email: string, updateUser: UpdateUserInput) {
+    const { email: _email, ...rest } = updateUser;
+    void _email;
+    return this.prismaService.user.updateManyAndReturn({
+      where: { email },
+      data: rest,
+      select: {
+        email: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} graphql`;
-  }
-
-  update(id: number) {
-    return `This action updates a #${id} graphql`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} graphql`;
+  remove(email: string) {
+    return this.prismaService.user.delete({
+      where: { email },
+    });
   }
 }

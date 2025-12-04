@@ -119,6 +119,15 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092,kafka-2:29093,kafka-3:29094
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
+  redis:
+    image: redis:alpine
+    container_name: my_redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    restart: always
+
 volumes:
   postgres-data:
   zookeeper_data:
@@ -126,3 +135,4 @@ volumes:
   kafka1_data:
   kafka2_data:
   kafka3_data:
+  redis_data:

@@ -20,11 +20,16 @@ export class CreateUserInput {
 }
 
 export class UpdateUserInput {
-    id: number;
+    email: string;
+    name?: Nullable<string>;
 }
 
 export abstract class IMutation {
-    abstract createUserInput(createUserInput: CreateUserInput): UserOutput | Promise<UserOutput>;
+    abstract createUser(createUserInput: CreateUserInput): UserOutput | Promise<UserOutput>;
+
+    abstract removeUser(email: string): boolean | Promise<boolean>;
+
+    abstract updateUser(updateUserInput: UpdateUserInput): Nullable<UserOutput[]> | Promise<Nullable<UserOutput[]>>;
 }
 
 export class Post {
@@ -41,6 +46,10 @@ export abstract class IQuery {
     abstract findEmailWithPost(email: string): Nullable<UserOutput> | Promise<Nullable<UserOutput>>;
 
     abstract findUserWithLeastPost(): Nullable<Nullable<UserWithPosts>[]> | Promise<Nullable<Nullable<UserWithPosts>[]>>;
+}
+
+export abstract class ISubscription {
+    abstract userAdded(): UserOutput | Promise<UserOutput>;
 }
 
 export class UserOutput {

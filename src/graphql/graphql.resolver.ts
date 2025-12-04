@@ -1,13 +1,19 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { GraphqlService } from './graphql.service';
 import { PraticePrismaService } from 'src/pratice_prisma/pratice_prisma.service';
-import { UserOutput } from './dto/graphql';
+import { CreateUserInput, UpdateUserInput, UserOutput } from './dto/graphql';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { Inject } from '@nestjs/common';
+import { PUB_SUB } from 'src/common/pubsub.module';
 
-@Resolver('graphql')
+const EVENT_USER_ADDED = 'userAdded';
+
+@Resolver(() => UserOutput)
 export class GraphqlResolver {
   constructor(
     private readonly graphqlService: GraphqlService,
     private readonly praticePrismaService: PraticePrismaService,
+    @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
   // @Mutation(() => UserOutput)
@@ -32,13 +38,29 @@ export class GraphqlResolver {
     return this.praticePrismaService.findEmailWithPost({ email });
   }
 
-  // @Mutation(() => Boolean, { name: 'updateUser' })
-  // update(@Args('updateUserInput') updateUserInput: UpdateUserInputGraphQl) {
-  //   return this.graphqlService.update(updateUserInput.id, updateUserInput);
-  // }
+  @Mutation(() => [UserOutput], { nullable: true })
+  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+    return this.graphqlService.update(updateUserInput.email, updateUserInput);
+  }
 
-  // @Mutation(() => Boolean, { name: 'removeUser' })
-  // remove(@Args('id') id: number) {
-  //   return this.graphqlService.remove(id);
-  // }
+  @Mutation(() => Boolean)
+  removeUser(@Args('email') email: string) {
+    return this.graphqlService.remove(email);
+  }
+
+  @Mutation(() => UserOutput)
+  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    this.pubSub.publish(EVENT_USER_ADDED, {
+      userAdded: createUserInput,
+    });
+    return this.graphqlService.create(createUserInput);
+  }
+
+  @Subscription(() => UserOutput)
+  userAdded() {
+    // Logic to handle userAdded subscription
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    return this.pubSub.asyncIterator(EVENT_USER_ADDED);
+  }
 }

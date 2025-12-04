@@ -31,7 +31,8 @@ input CreateUserInput {
 }
 
 input UpdateUserInput {
-  id: Int!
+  email: String!
+  name: String
 }
 
 type Query {
@@ -41,7 +42,11 @@ type Query {
 }
 
 type Mutation {
-  createUserInput(createUserInput: CreateUserInput!): UserOutput!
-  # updateGraphql(updateGraphqlInput: UpdateGraphqlInput!): Graphql!
-  # removeGraphql(id: Int!): Graphql
+  createUser(createUserInput: CreateUserInput!): UserOutput!
+  updateUser(updateUserInput: UpdateUserInput!): [UserOutput!]
+  removeUser(email: String!): Boolean!
+}
+
+type Subscription {
+  userAdded: UserOutput! # Tên sự kiện client sẽ lắng nghe
 }
