@@ -17,6 +17,7 @@ type UserWithPosts {
   name: String
   role: Role
   posts: [Post]
+  countUser: Int!
 }
 
 enum Role {
