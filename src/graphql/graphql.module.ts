@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GraphqlService } from './graphql.service';
-import { GraphqlResolver } from './graphql.resolver';
+import { UserResolver,PostResolver} from './graphql.resolver';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -12,12 +12,18 @@ import { PrismaService } from 'src/config/prisma.service';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      typePaths: ['./**/*.graphql'],
+      definitions: {
+        path: join(process.cwd(), 'src/graphql/dto/graphql.ts'),
+        outputAs: 'class',
+      },
+      // autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
     }),
   ],
   providers: [
-    GraphqlResolver,
+    UserResolver,
+    PostResolver,
     GraphqlService,
     PraticePrismaService,
     PrismaService,

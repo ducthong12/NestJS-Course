@@ -1,39 +1,87 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { GraphqlService } from './graphql.service';
-import { CreateUserInputGraphQl } from './dto/create-user-graphql.input';
-import { UpdateUserInputGraphQl } from './dto/update-user-graphql.input';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { PraticePrismaService } from 'src/pratice_prisma/pratice_prisma.service';
-import { UserOutputGraphQlDto } from './dto/user-graphql.output';
+import { AddPostInput, EditPostInput } from './dto/graphql';
+import { GraphqlService } from './graphql.service';
 
-@Resolver('graphql')
-export class GraphqlResolver {
+@Resolver('User')
+export class UserResolver {
   constructor(
     private readonly graphqlService: GraphqlService,
     private readonly praticePrismaService: PraticePrismaService,
   ) {}
 
-  @Mutation(() => Boolean, { name: 'createUser' })
-  create(@Args('createUserInput') createUserInput: CreateUserInputGraphQl) {
-    return this.graphqlService.create(createUserInput);
+  @Query('users')
+  users() {
+    return this.graphqlService.findAllUser();
   }
 
-  @Query(() => String, { name: 'findAllUser' })
-  findAll() {
-    return this.graphqlService.findAll();
+  @Query('user')
+  async user(@Args('id') id: number) {
+    return this.graphqlService.findUserById(id);
   }
 
-  @Query(() => UserOutputGraphQlDto, { name: 'findEmailWithPost' })
-  findEmailWithPost(@Args('email') email: string) {
-    return this.praticePrismaService.findEmailWithPost({ email });
+
+  @ResolveField()
+  async posts(@Parent() user) {
+    const { id } = user;
+    return this.graphqlService.findAllPost(id);
   }
 
-  @Mutation(() => Boolean, { name: 'updateUser' })
-  update(@Args('updateUserInput') updateUserInput: UpdateUserInputGraphQl) {
-    return this.graphqlService.update(updateUserInput.id, updateUserInput);
+  @ResolveField()
+  async profile(@Parent() user) {
+    const { id } = user;
+    return this.graphqlService.findProfileById(id);
   }
 
-  @Mutation(() => Boolean, { name: 'removeUser' })
-  remove(@Args('id') id: number) {
-    return this.graphqlService.remove(id);
+}
+
+@Resolver('Post')
+export class PostResolver {
+  constructor(
+    private readonly graphqlService: GraphqlService,
+    private readonly praticePrismaService: PraticePrismaService,
+  ) {}
+
+  @Query('users')
+  users() {
+    return this.graphqlService.findAllUser(); 
+  }
+
+  @Query('user')
+  async user(@Args('id') id: number) {
+    return this.graphqlService.findUserById(id);
+  }
+
+
+  @Query('posts')
+  getAllPosts() {
+    return this.graphqlService.findAllPost();
+  }
+
+  @ResolveField()
+  async author(@Parent() post) {
+    const { authorId } = post;
+    return this.graphqlService.findUserById(authorId);
+  }
+
+  @Mutation('increaseViewCount')
+  async increaseViewCount(@Args('postId') postId: string) {
+    return this.graphqlService.increaseViewCount(postId);
+  }
+
+  @Mutation('addPost')
+  async addPost(@Args('post') post: AddPostInput) {
+    const newPost = await this.graphqlService.addPost(post);
+    return newPost[0];
+  }
+
+  @Mutation('deletePost')
+  async deletePost(@Args('postId') postId: string) {
+    return this.graphqlService.deletePost(postId);
+  }
+
+  @Mutation('updatePost')
+  async updatePost(@Args('postId') postId: number, @Args('editPost') editPost: EditPostInput) {
+    return this.graphqlService.updatePost(postId, editPost);
   }
 }

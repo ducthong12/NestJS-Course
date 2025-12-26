@@ -17,7 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "start:graphql": "npx ts-node src/graphql/generate-typing.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.2.0",
@@ -39,6 +40,7 @@
     "kafkajs": "^2.2.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "ts-morph": "^25.0.1",
     "winston": "^3.18.3"
   },
   "devDependencies": {
